@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:spring="http://www.springframework.org/schema/beans"
+	xmlns:management="http://www.mulesoft.org/schema/mule/management"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core
+http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/management
+http://www.mulesoft.org/schema/mule/management/current/mule-management.xsd">
+
+	<management:jmx-server>
+		<management:connector-server
+			url="service:jmx:rmi:///jndi/rmi://10.10.10.10:9999/server" rebind="true" />
+		<management:credentials>
+			<spring:entry key="admin" value="admin" />
+			<spring:entry key="standard" value="standard" />
+		</management:credentials>
+	</management:jmx-server>
+
+</mule>
