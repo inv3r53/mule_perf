@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:validation="http://www.mulesoft.org/schema/mule/validation" xmlns:dw="http://www.mulesoft.org/schema/mule/ee/dw" xmlns:ws="http://www.mulesoft.org/schema/mule/ws" xmlns:metadata="http://www.mulesoft.org/schema/mule/metadata" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd
+http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee/dw/current/dw.xsd
+http://www.mulesoft.org/schema/mule/ws http://www.mulesoft.org/schema/mule/ws/current/mule-ws.xsd
+http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd">
+    
+   <flow name="getUnitedFlights">
+        <http:listener config-ref="HTTP_Listener_Configuration" path="/united" doc:name="HTTP"/>
+<set-variable variableName="destinationCode" value="#[ message.inboundProperties.'http.query.params'.destinationCode == empty ? 'SFO' : message.inboundProperties.'http.query.params'.destinationCode]" doc:name="Variable"/>
+        <logger message="START" level="INFO" category="getUnitedFlights" doc:name="Logger"/>        
+        <http:request config-ref="United_REST_HTTP_Request_config" path="essentials/united/flights/{destination}/" method="GET" metadata:id="eb6e0c1c-5b44-4b92-8e09-abb540985232" doc:name="United REST Service Consumer">
+            <http:request-builder>
+                <http:uri-param paramName="destination" value="#[flowVars.destinationCode]"/>
+            </http:request-builder>
+        </http:request>
+        <dw:transform-message metadata:id="74920bf8-9e0f-4ac5-8979-924f56491671" doc:name="Transform Message">
+            <dw:input-payload doc:sample="united-flights-example.json"/>
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/json
+---
+payload.flights map ((flight , indexOfFlight) -> {
+	airlineName: flight.airlineName,
+	availableSeats: flight.emptySeats,
+	departureDate: flight.departureDate,
+	destination: flight.destination,
+	flightCode: flight.code,
+	origination: flight.origin,
+	planeType: flight.planeType,
+	price: flight.price
+} as :object {
+	class : "com.mulesoft.training.Flight"
+})]]></dw:set-payload>
+        </dw:transform-message>
+        <logger message="END" level="INFO" category="getUnitedFlights" doc:name="Copy_of_Logger"/>
+        <custom-interceptor class="com.mulesoft.training.MyInterceptor"/>     
+    </flow>
+ 
+
+</mule>
